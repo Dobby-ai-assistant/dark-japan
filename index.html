@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Japan — The Unseen Side</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Inter:wght@300;400;600&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0a0a;
+            --card-bg: #111111;
+            --accent: #c41e3a;
+            --accent-glow: rgba(196, 30, 58, 0.3);
+            --text: #e0e0e0;
+            --text-dim: #888;
+            --text-bright: #ffffff;
+            --border: #222;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+            background:
+                radial-gradient(ellipse at 50% 0%, rgba(196, 30, 58, 0.15) 0%, transparent 60%),
+                var(--bg);
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="50" x="50" font-size="80" text-anchor="middle" fill="rgba(255,255,255,0.02)">鬼</text></svg>') repeat;
+            background-size: 200px;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .hero-kanji {
+            font-family: 'Noto Serif JP', serif;
+            font-size: clamp(4rem, 12vw, 10rem);
+            font-weight: 900;
+            color: var(--accent);
+            text-shadow: 0 0 60px var(--accent-glow), 0 0 120px rgba(196, 30, 58, 0.1);
+            letter-spacing: 0.1em;
+            animation: pulseGlow 4s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { text-shadow: 0 0 60px var(--accent-glow), 0 0 120px rgba(196, 30, 58, 0.1); }
+            50% { text-shadow: 0 0 80px var(--accent-glow), 0 0 160px rgba(196, 30, 58, 0.2); }
+        }
+
+        .hero h1 {
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(1.5rem, 4vw, 3rem);
+            font-weight: 300;
+            color: var(--text-bright);
+            margin-top: 1rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+        }
+
+        .hero p {
+            max-width: 600px;
+            margin-top: 1.5rem;
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .scroll-hint {
+            position: absolute;
+            bottom: 2rem;
+            animation: bounce 2s ease-in-out infinite;
+            color: var(--text-dim);
+            font-size: 1.5rem;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+
+        /* ===== NAVIGATION ===== */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .nav a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.85rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            transition: color 0.3s;
+            font-weight: 600;
+        }
+
+        .nav a:hover { color: var(--accent); }
+
+        /* ===== SECTIONS ===== */
+        .section {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 6rem 2rem;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-header .category {
+            font-size: 0.8rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .section-header h2 {
+            font-family: 'Noto Serif JP', serif;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            color: var(--text-bright);
+            margin-top: 0.5rem;
+        }
+
+        .section-header .subtitle {
+            color: var(--text-dim);
+            margin-top: 1rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* ===== PLACE CARDS ===== */
+        .place {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 5rem;
+            align-items: center;
+        }
+
+        .place:nth-child(even) .place-info { order: -1; }
+
+        .place-image {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .place-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(30%) contrast(1.1);
+            transition: filter 0.5s, transform 0.5s;
+        }
+
+        .place-image:hover img {
+            filter: grayscale(0%) contrast(1);
+            transform: scale(1.03);
+        }
+
+        .place-image .overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .place-info h3 {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 1.8rem;
+            color: var(--text-bright);
+            margin-bottom: 0.3rem;
+        }
+
+        .place-info .jp-name {
+            font-family: 'Noto Serif JP', serif;
+            color: var(--accent);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .place-info .location {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .place-info p {
+            color: var(--text);
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .place-info .tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .tag {
+            font-size: 0.7rem;
+            padding: 0.3rem 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--text-dim);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .tag.danger { border-color: var(--accent); color: var(--accent); }
+
+        .visit-info {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1rem 1.2rem;
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+        }
+
+        .visit-info strong {
+            color: var(--accent);
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .visit-info p {
+            margin-top: 0.3rem;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        /* ===== DIVIDER ===== */
+        .divider {
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--border);
+            font-family: 'Noto Serif JP', serif;
+            font-size: 2rem;
+            letter-spacing: 1em;
+        }
+
+        /* ===== MAP SECTION ===== */
+        .map-section {
+            background: var(--card-bg);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .map-section h2 {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 2rem;
+            color: var(--text-bright);
+            margin-bottom: 2rem;
+        }
+
+        .map-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .map-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1.5rem;
+            text-align: left;
+            transition: border-color 0.3s;
+        }
+
+        .map-card:hover { border-color: var(--accent); }
+
+        .map-card .region {
+            font-size: 0.7rem;
+            color: var(--accent);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .map-card h4 {
+            color: var(--text-bright);
+            font-size: 1rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .map-card p {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        /* ===== TIPS ===== */
+        .tips {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 6rem 2rem;
+        }
+
+        .tips h2 {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 2.5rem;
+            color: var(--text-bright);
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .tip {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tip-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+
+        .tip h4 {
+            color: var(--text-bright);
+            margin-bottom: 0.3rem;
+        }
+
+        .tip p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            text-align: center;
+            padding: 4rem 2rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 0.8rem;
+        }
+
+        footer .kanji {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 1.5rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .place {
+                grid-template-columns: 1fr;
+            }
+            .place:nth-child(even) .place-info { order: 0; }
+            .nav { gap: 1rem; }
+            .nav a { font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-kanji">闇日本</div>
+    <h1>Dark Japan</h1>
+    <p>Forget the cherry blossoms and temple selfies. This is the Japan they don't put in the brochures — haunted forests, ghost islands, gates to the underworld, and places where the veil between worlds runs thin.</p>
+    <div class="scroll-hint">↓</div>
+</section>
+
+<!-- NAV -->
+<nav class="nav">
+    <a href="#haunted">Haunted</a>
+    <a href="#abandoned">Abandoned</a>
+    <a href="#dark-history">Dark History</a>
+    <a href="#supernatural">Supernatural</a>
+    <a href="#map">Map</a>
+    <a href="#tips">Travel Tips</a>
+</nav>
+
+<!-- ==================== HAUNTED ==================== -->
+<section class="section" id="haunted">
+    <div class="section-header">
+        <div class="category">幽霊 · Yūrei</div>
+        <h2>Haunted</h2>
+        <p class="subtitle">Places where the dead are said to linger. Tread carefully.</p>
+    </div>
+
+    <!-- Aokigahara -->
+    <div class="place">
+        <div class="place-image">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Aokigahara_and_Misaka_Mountains.JPG/1280px-Aokigahara_and_Misaka_Mountains.JPG" alt="Aokigahara Forest">
+            <div class="overlay">Yamanashi Prefecture</div>
+        </div>
+        <div class="place-info">
+            <h3>Aokigahara</h3>
+            <div class="jp-name">青木ヶ原 — The Sea of Trees</div>
+            <div class="location">📍 Northwest flank of Mount Fuji, Yamanashi</div>
+            <p>A 35 km² forest growing on ancient hardened lava from Fuji's last major eruption in 864 CE. The porous lava rock absorbs all sound. Step off the trail and silence swallows you whole.</p>
+            <p>Known for centuries as a dwelling place of <em>yūrei</em> — restless spirits from Japanese mythology. The forest is so dense that compasses reportedly malfunction due to magnetic iron in the volcanic soil. Since the 1960s, it gained a much darker reputation that made it infamous worldwide.</p>
+            <div class="visit-info">
+                <strong>Visiting</strong>
+                <p>Stick to marked trails. The ice caves on the western edge are the main tourist draw. Guided nature walks available. Go early morning when the mist sits low — unforgettable atmosphere.</p>
+            </div>
+            <div class="tags">
+                <span class="tag danger">intense</span>
+                <span class="tag">forest</span>
+                <span class="tag">folklore</span>
+                <span class="tag">free entry</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inunaki -->
+    <div class="place">
+        <div class="place-image">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/MKU611-C2-17.jpg/1280px-MKU611-C2-17.jpg" alt="Inunaki area aerial">
+            <div class="overlay">Fukuoka Prefecture</div>
+        </div>
+        <div class="place-info">
+            <h3>Inunaki Village & Old Inunaki Tunnel</h3>
+            <div class="jp-name">犬鳴村 — The Howling Village</div>
+            <div class="location">📍 Inunaki Mountain Pass, Fukuoka</div>
+            <p>Japan's most famous urban legend. A village that supposedly rejected the Japanese constitution, where a sign reads: <em>"The laws of Japan do not apply beyond this point."</em> Visitors who enter are said to never return.</p>
+            <p>The real Inunaki Village existed from 1691-1889 and was flooded by a dam. The Old Inunaki Tunnel nearby is now sealed but remains one of Japan's most notorious "haunted" spots. The legend inspired a 2019 horror film.</p>
+            <div class="visit-info">
+                <strong>Visiting</strong>
+                <p>The old tunnel is sealed. The area around Inunaki Dam and the mountain pass is accessible and genuinely eerie. Best visited during daylight. Don't go alone at night — not because of ghosts, but because it's remote and poorly lit.</p>
+            </div>
+            <div class="tags">
+                <span class="tag danger">urban legend</span>
+                <span class="tag">tunnel</span>
+                <span class="tag">horror</span>
+                <span class="tag">remote</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="divider">⛩ ⛩ ⛩</div>
+
+<!-- ==================== ABANDONED ==================== -->
+<section class="section" id="abandoned">
+    <div class="section-header">
+        <div class="category">廃墟 · Haikyo</div>
+        <h2>Abandoned</h2>
+        <p class="subtitle">Urban ruins reclaimed by nature. Japan's haikyo culture runs deep.</p>
+    </div>
+
+    <!-- Hashima Island -->
+    <div class="place">
+        <div class="place-image">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Battle-Ship_Island_Nagasaki_Japan.jpg/1280px-Battle-Ship_Island_Nagasaki_Japan.jpg" alt="Hashima Island">
+            <div class="overlay">Nagasaki Prefecture</div>
+        </div>
+        <div class="place-info">
+            <h3>Hashima Island (Gunkanjima)</h3>
+            <div class="jp-name">端島 — Battleship Island</div>
+            <div class="location">📍 15 km off Nagasaki coast</div>
+            <p>A concrete ghost island that once held the highest population density on Earth — 5,259 people crammed onto 6.3 hectares in 1959. Built for undersea coal mining, it had apartment blocks, a school, hospital, cinema, and even a rooftop garden. All on a rock in the sea.</p>
+            <p>When the coal ran out in 1974, everyone left. The entire island was abandoned overnight. Now its brutalist concrete buildings crumble into the Pacific, untouched for decades. You might recognize it as the villain's lair in the James Bond film <em>Skyfall</em>.</p>
+            <div class="visit-info">
+                <strong>Visiting</strong>
+                <p>UNESCO World Heritage Site. Boat tours depart from Nagasaki Port (~¥4,000-5,000). You can walk a designated path on the island. Tours cancel in rough weather. Book in advance — they sell out.</p>
+            </div>
+            <div class="tags">
+                <span class="tag">UNESCO</span>
+                <span class="tag">island</span>
+                <span class="tag">industrial ruins</span>
+                <span class="tag">boat tour</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nara Dreamland -->
+    <div class="place">
+        <div class="place-image">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Nara_Dreamland.jpg/1280px-Nara_Dreamland.jpg" alt="Nara Dreamland entrance">
+            <div class="overlay">Nara Prefecture</div>
+        </div>
+        <div class="place-info">
+            <h3>Nara Dreamland</h3>
+            <div class="jp-name">奈良ドリームランド — Japan's Dead Disneyland</div>
+            <div class="location">📍 Nara City, Nara</div>
+            <p>A Disneyland knockoff that opened in 1961 after a Japanese businessman visited the original Anaheim park and wanted to build his own. Complete with a Sleeping Beauty Castle replica, six roller coasters, and its own Main Street.</p>
+            <p>When the real Tokyo Disneyland opened in 1983, attendance collapsed. It limped along until 2006, then was abandoned entirely — left to rot with rides still standing, mascot statues gathering moss. It became the holy grail of urban explorers before demolition in 2016-2017.</p>
+            <div class="visit-info">
+                <strong>Visiting</strong>
+                <p>⚠️ <strong>Demolished.</strong> The park was torn down in 2016-2017. The site is now cleared. This entry is here for history — it was one of the most photographed abandoned places in Japan. The photos and videos that remain online are haunting.</p>
+            </div>
+            <div class="tags">
+                <span class="tag danger">demolished</span>
+                <span class="tag">theme park</span>
+                <span class="tag">haikyo legend</span>
+                <span class="tag">photography</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nichitsu Mine Town -->
+    <div class="place">
+        <div class="place-image">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Nichitsu_mine.jpg/1280px-Nichitsu_mine.jpg" alt="Nichitsu Ghost Town" onerror="this.parentElement.style.background='linear-gradient(135deg, #1a1a1a, #0a0a0a)'; this.style.display='none';">
+            <div class="overlay">Saitama Prefecture</div>
+        </div>
+        <div class="place-info">
+            <h3>Nichitsu Ghost Town</h3>
+            <div class="jp-name">ニッチツ鉱山 — The Mountain Ghost Town</div>
+            <div class="location">📍 Chichibu, Saitama (3 hours from Tokyo)</div>
+            <p>Deep in the mountains of Saitama, an entire mining town sits abandoned. Houses, a hospital, a school — all frozen in time since the mine closed. Textbooks still sit on desks. Personal belongings litter the floors.</p>
+            <p>What makes Nichitsu unique is its accessibility from Tokyo and the sheer completeness of what was left behind. It's like the residents just... walked out one day and never came back. The surrounding mountain scenery adds to the otherworldly feeling.</p>
+            <div class="visit-info">
+                <strong>Visiting</strong>
+                <p>The area is technically private property — enter at your own risk and be respectful. Accessible by car via mountain roads from Chichibu. The drive itself through the gorge is spectacular. Some buildings are structurally unsound.</p>
+            </div>
+            <div class="tags">
+                <span class="tag danger">enter at own risk</span>
+                <span class="tag">mining town</span>
+                <span class="tag">time capsule</span>
+                <span class="tag">remote</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="divider">⛩ ⛩ ⛩</div>
+
+<!-- ==================== DARK HISTORY ==================== -->
+<section class="section" id="dark-history">
+    <div class="section-header">
+        <div class="category">暗い歴史 · Dark History</div>
+        <h2>Dark History</h2>
+        <p class="subtitle">Beautiful places with terrible pasts. History doesn't always come gift-wrapped.</p>
+    </div>
+
+    <!-- Okunoshima -->
+    <div class="place">
+        <div class="place-image">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Okunoshima_2.JPG/1280px-Okunoshima_2.JPG" alt="Okunoshima Rabbit Island">
+            <div class="overlay">Hiroshima Prefecture</div>
+        </div>
+        <div class="place-info">
+            <h3>Ōkunoshima (Rabbit Island)</h3>
+            <div class="jp-name">大久野島 — The Poison Gas Island</div>
+            <div class="location">📍 Seto Inland Sea, Hiroshima Prefecture</div>
+            <p>Today it's known as "Rabbit Island" — hundreds of friendly wild rabbits hop up to visitors begging for food. Instagram gold. Adorable. But the cute exterior hides one of Japan's darkest secrets.</p>
+            <p>From 1929 to 1945, this island was a secret chemical weapons factory producing poison gas for Japan's war in China. It was literally erased from maps. Workers weren't told what they were making. The ruined gas factory and power plant still stand, crumbling among the rabbits.</p>
+            <div class="visit-info">
+                <strong>Visiting</strong>
+                <p>Ferry from Tadanoumi Port (~15 min). There's a resort hotel and camping. Visit the Poison Gas Museum (¥100) — small but impactful. Bring rabbit food from the mainland. The contrast between cute rabbits and war ruins is surreal.</p>
+            </div>
+            <div class="tags">
+                <span class="tag">war history</span>
+                <span class="tag">chemical weapons</span>
+                <span class="tag">rabbits</span>
+                <span class="tag">island</span>
+                <span class="tag">museum</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Matsuo Mine -->
+    <div class="place">
+        <div class="place-image">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Matsuo_Mine_Ruins_01.jpg/1280px-Matsuo_Mine_Ruins_01.jpg" alt="Matsuo Mine apartment ruins" onerror="this.parentElement.style.background='linear-gradient(135deg, #1a1a1a, #0a0a0a)'; this.style.display='none';">
+            <div class="overlay">Iwate Prefecture</div>
+        </div>
+        <div class="place-info">
+            <h3>Matsuo Mine Apartments</h3>
+            <div class="jp-name">松尾鉱山 — The Ruins in the Clouds</div>
+            <div class="location">📍 Hachimantai, Iwate Prefecture</div>
+            <p>At 1,000 meters elevation in northern Honshu, massive concrete apartment blocks emerge from the fog like something from a post-apocalyptic film. Once home to 15,000 miners and their families, this sulfur mining town was called "a paradise above the clouds."</p>
+            <p>When the mine closed in 1969, the entire community vanished. The apartment buildings — some of the first reinforced concrete housing in Japan — remain standing, slowly being consumed by mountain weather. In winter, they're buried in snow. In fog, they appear and disappear like ghosts.</p>
+            <div class="visit-info">
+                <strong>Visiting</strong>
+                <p>Visible from the road to Hachimantai. The buildings are fenced off and structurally dangerous — view from the outside. Best combined with a trip to Hachimantai hot springs. Autumn foliage season makes the contrast stunning.</p>
+            </div>
+            <div class="tags">
+                <span class="tag">industrial ruins</span>
+                <span class="tag">mountain</span>
+                <span class="tag">photography</span>
+                <span class="tag">atmospheric</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="divider">⛩ ⛩ ⛩</div>
+
+<!-- ==================== SUPERNATURAL ==================== -->
+<section class="section" id="supernatural">
+    <div class="section-header">
+        <div class="category">冥界 · The Other Side</div>
+        <h2>Supernatural</h2>
+        <p class="subtitle">Where the living world meets the dead. Japan takes this literally.</p>
+    </div>
+
+    <!-- Mount Osore -->
+    <div class="place">
+        <div class="place-image">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Osorezan_Aomori.JPG/1280px-Osorezan_Aomori.JPG" alt="Mount Osore temple grounds">
+            <div class="overlay">Aomori Prefecture</div>
+        </div>
+        <div class="place-info">
+            <h3>Mount Osore (Osorezan)</h3>
+            <div class="jp-name">恐山 — The Mountain of Dread</div>
+            <div class="location">📍 Shimokita Peninsula, Aomori (northernmost Honshu)</div>
+            <p>One of Japan's three most sacred places — and a literal gateway to the afterlife. A Buddhist temple sits inside the caldera of an active volcano. The landscape is hellish: sulfurous steam rises from barren yellow earth, the stench of rotten eggs fills the air, and a pristine turquoise lake sits in the middle of it all.</p>
+            <p>The name means "Mountain of Dread" (from the Ainu word for the area, later matched to the Japanese word <em>osore</em> — fear). Founded in 862 CE. Blind spirit mediums called <em>itako</em> gather here during summer festivals to channel the dead. Visitors leave pinwheels and toys for deceased children.</p>
+            <div class="visit-info">
+                <strong>Visiting</strong>
+                <p>Open May-October only (snow closes it in winter). Entry ¥500. The Bodai-ji temple has free onsen baths fed by volcanic springs. The Itako Taisai festival (July) is when mediums communicate with the dead. Remote — nearest city is Mutsu. Worth the journey.</p>
+            </div>
+            <div class="tags">
+                <span class="tag danger">sacred site</span>
+                <span class="tag">volcano</span>
+                <span class="tag">underworld</span>
+                <span class="tag">temple</span>
+                <span class="tag">onsen</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tōno -->
+    <div class="place">
+        <div class="place-image">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Kappabuchi_Pool%2C_Tono.jpg/1280px-Kappabuchi_Pool%2C_Tono.jpg" alt="Kappa Pool Tono" onerror="this.parentElement.style.background='linear-gradient(135deg, #1a1a2a, #0a0a15)'; this.style.display='none';">
+            <div class="overlay">Iwate Prefecture</div>
+        </div>
+        <div class="place-info">
+            <h3>Tōno — Valley of the Kappa</h3>
+            <div class="jp-name">遠野 — Where Folklore Is Real</div>
+            <div class="location">📍 Tōno City, Iwate Prefecture</div>
+            <p>A rural valley where Japanese folklore isn't stories — it's daily life. This is the home of <em>Tōno Monogatari</em> (1910), the most important collection of Japanese folk tales ever published. The locals still leave cucumbers at the river for <em>kappa</em> (water demons).</p>
+            <p>The valley is dotted with shrines to <em>oshira-sama</em> (mulberry stick deities wrapped in cloth), <em>zashiki-warashi</em> (child ghosts that haunt houses and bring good fortune), and the <em>kappa</em> pool where the water creatures supposedly live. It's not played up for tourists — this is genuine, living folklore.</p>
+            <div class="visit-info">
+                <strong>Visiting</strong>
+                <p>Rent a bicycle and explore the valley. Visit Kappa-buchi pool, the Tōno Folklore Museum, and Denshōen garden. Stay at a traditional farmhouse (<em>magariya</em>). The Tōno Matsuri festival in September brings the folklore to life. 2-3 hours from Morioka by train.</p>
+            </div>
+            <div class="tags">
+                <span class="tag">folklore</span>
+                <span class="tag">kappa</span>
+                <span class="tag">rural</span>
+                <span class="tag">cycling</span>
+                <span class="tag">living tradition</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== MAP ==================== -->
+<section class="map-section" id="map">
+    <h2>By Region</h2>
+    <div class="map-grid">
+        <div class="map-card">
+            <div class="region">Tōhoku (North)</div>
+            <h4>Mount Osore</h4>
+            <p>Gate to the underworld. Volcanic, remote, unforgettable.</p>
+        </div>
+        <div class="map-card">
+            <div class="region">Tōhoku (North)</div>
+            <h4>Tōno Valley</h4>
+            <p>Living folklore. Kappa, ghosts, and ancient tales.</p>
+        </div>
+        <div class="map-card">
+            <div class="region">Tōhoku (North)</div>
+            <h4>Matsuo Mine</h4>
+            <p>Concrete ruins emerging from mountain fog.</p>
+        </div>
+        <div class="map-card">
+            <div class="region">Kantō</div>
+            <h4>Aokigahara</h4>
+            <p>The Sea of Trees at the base of Fuji.</p>
+        </div>
+        <div class="map-card">
+            <div class="region">Kantō</div>
+            <h4>Nichitsu Ghost Town</h4>
+            <p>Abandoned mining town, 3 hours from Tokyo.</p>
+        </div>
+        <div class="map-card">
+            <div class="region">Kansai</div>
+            <h4>Nara Dreamland</h4>
+            <p>Dead Disneyland. Demolished, but legendary.</p>
+        </div>
+        <div class="map-card">
+            <div class="region">Chūgoku</div>
+            <h4>Ōkunoshima</h4>
+            <p>Cute rabbits. Secret poison gas factory. Both real.</p>
+        </div>
+        <div class="map-card">
+            <div class="region">Kyūshū</div>
+            <h4>Hashima Island</h4>
+            <p>Battleship Island. Bond villain lair. Ghost city.</p>
+        </div>
+        <div class="map-card">
+            <div class="region">Kyūshū</div>
+            <h4>Inunaki Village</h4>
+            <p>The Howling Village. Japan's scariest urban legend.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== TIPS ==================== -->
+<section class="tips" id="tips">
+    <h2>Before You Go</h2>
+
+    <div class="tip">
+        <div class="tip-icon">⚠️</div>
+        <div>
+            <h4>Respect the Sites</h4>
+            <p>Many of these places are sacred, dangerous, or both. Don't be the tourist who takes selfies at a memorial. Some locations have real dark histories involving real people.</p>
+        </div>
+    </div>
+
+    <div class="tip">
+        <div class="tip-icon">🗣️</div>
+        <div>
+            <h4>Language Barrier is Real</h4>
+            <p>These aren't tourist hotspots. English signage is rare. Learn basic Japanese phrases or bring a translation app. Google Translate's camera mode is your friend.</p>
+        </div>
+    </div>
+
+    <div class="tip">
+        <div class="tip-icon">🚗</div>
+        <div>
+            <h4>You'll Need a Car</h4>
+            <p>Most of these places are off the train grid. Rent a car — Japanese roads are excellent, GPS works well, and rural driving is easy. Get an International Driving Permit before you go.</p>
+        </div>
+    </div>
+
+    <div class="tip">
+        <div class="tip-icon">📱</div>
+        <div>
+            <h4>Get a Pocket WiFi</h4>
+            <p>Cell signal is spotty in mountain areas. A pocket WiFi router (rent at the airport) keeps you connected. Download offline maps for areas like Nichitsu and Inunaki.</p>
+        </div>
+    </div>
+
+    <div class="tip">
+        <div class="tip-icon">🏚️</div>
+        <div>
+            <h4>Haikyo Etiquette</h4>
+            <p>Japan's urban exploration scene is serious. Don't break into buildings. Don't take souvenirs. Don't post locations of hidden spots publicly. Take only photos, leave only footprints.</p>
+        </div>
+    </div>
+
+    <div class="tip">
+        <div class="tip-icon">🌧️</div>
+        <div>
+            <h4>Weather Matters</h4>
+            <p>These places are 10x more atmospheric in fog, rain, or overcast skies. Check weather forecasts and plan accordingly. Mount Osore is only open May-October. Matsuo Mine is best in autumn.</p>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+    <div class="kanji">闇</div>
+    <p>Researched & built by Dobby 🧦 for the Boss</p>
+    <p style="margin-top: 0.5rem;">Travel responsibly. Respect the living and the dead.</p>
+</footer>
+
+</body>
+</html>
