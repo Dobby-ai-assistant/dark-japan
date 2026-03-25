@@ -831,146 +831,189 @@
 " onclick="toggleMusic()">🔇</div>
 
 <script>
-// Web Audio API — generates spooky ambient sounds, no external files needed
-let audioCtx, masterGain, isPlaying = false;
+// Death Note - "Low of Solipsism" (L's Theme) piano recreation via Web Audio API
+let audioCtx, masterGain, isPlaying = false, loopTimeout;
 
-function createSpookyAmbience() {
+function createDeathNoteTheme() {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     masterGain = audioCtx.createGain();
-    masterGain.gain.value = 0.3;
+    masterGain.gain.value = 0.5;
+    
+    // Reverb convolver
+    const convolver = audioCtx.createConvolver();
+    const reverbLen = audioCtx.sampleRate * 2.5;
+    const reverbBuf = audioCtx.createBuffer(2, reverbLen, audioCtx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+        const d = reverbBuf.getChannelData(ch);
+        for (let i = 0; i < reverbLen; i++) {
+            d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / reverbLen, 2.5);
+        }
+    }
+    convolver.buffer = reverbBuf;
+    
+    const dryGain = audioCtx.createGain();
+    const wetGain = audioCtx.createGain();
+    dryGain.gain.value = 0.7;
+    wetGain.gain.value = 0.4;
+    
+    dryGain.connect(masterGain);
+    convolver.connect(wetGain);
+    wetGain.connect(masterGain);
     masterGain.connect(audioCtx.destination);
 
-    // Deep drone
-    const drone = audioCtx.createOscillator();
-    const droneGain = audioCtx.createGain();
-    drone.type = 'sine';
-    drone.frequency.value = 55; // Low A
-    droneGain.gain.value = 0.15;
-    drone.connect(droneGain);
-    droneGain.connect(masterGain);
-    drone.start();
-
-    // Second drone (dissonant)
-    const drone2 = audioCtx.createOscillator();
-    const drone2Gain = audioCtx.createGain();
-    drone2.type = 'sine';
-    drone2.frequency.value = 58; // Slightly detuned — creates eerie beating
-    drone2Gain.gain.value = 0.12;
-    drone2.connect(drone2Gain);
-    drone2Gain.connect(masterGain);
-    drone2.start();
-
-    // Dark pad
-    const pad = audioCtx.createOscillator();
-    const padGain = audioCtx.createGain();
-    const padFilter = audioCtx.createBiquadFilter();
-    pad.type = 'sawtooth';
-    pad.frequency.value = 110;
-    padFilter.type = 'lowpass';
-    padFilter.frequency.value = 200;
-    padFilter.Q.value = 5;
-    padGain.gain.value = 0.05;
-    pad.connect(padFilter);
-    padFilter.connect(padGain);
-    padGain.connect(masterGain);
-    pad.start();
-
-    // Slow LFO on pad filter for movement
-    const lfo = audioCtx.createOscillator();
-    const lfoGain = audioCtx.createGain();
-    lfo.type = 'sine';
-    lfo.frequency.value = 0.1; // Very slow
-    lfoGain.gain.value = 100;
-    lfo.connect(lfoGain);
-    lfoGain.connect(padFilter.frequency);
-    lfo.start();
-
-    // Wind-like noise
-    const bufferSize = audioCtx.sampleRate * 2;
-    const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-    const data = noiseBuffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-        data[i] = (Math.random() * 2 - 1) * 0.5;
+    function playPianoNote(freq, startTime, duration, velocity = 0.3) {
+        // Piano-like tone with harmonics
+        const harmonics = [1, 2, 3, 4, 5, 6];
+        const amplitudes = [1, 0.5, 0.25, 0.15, 0.08, 0.04];
+        
+        harmonics.forEach((h, i) => {
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq * h;
+            
+            const amp = velocity * amplitudes[i];
+            g.gain.setValueAtTime(0, startTime);
+            g.gain.linearRampToValueAtTime(amp, startTime + 0.01);
+            g.gain.exponentialRampToValueAtTime(amp * 0.6, startTime + 0.1);
+            g.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+            
+            osc.connect(g);
+            g.connect(dryGain);
+            g.connect(convolver);
+            osc.start(startTime);
+            osc.stop(startTime + duration + 0.1);
+        });
     }
-    const noise = audioCtx.createBufferSource();
-    noise.buffer = noiseBuffer;
-    noise.loop = true;
-    const noiseFilter = audioCtx.createBiquadFilter();
-    noiseFilter.type = 'bandpass';
-    noiseFilter.frequency.value = 300;
-    noiseFilter.Q.value = 0.5;
-    const noiseGain = audioCtx.createGain();
-    noiseGain.gain.value = 0.08;
-    noise.connect(noiseFilter);
-    noiseFilter.connect(noiseGain);
-    noiseGain.connect(masterGain);
-    noise.start();
 
-    // Slow wind sweep
-    const windLfo = audioCtx.createOscillator();
-    const windLfoGain = audioCtx.createGain();
-    windLfo.type = 'sine';
-    windLfo.frequency.value = 0.05;
-    windLfoGain.gain.value = 200;
-    windLfo.connect(windLfoGain);
-    windLfoGain.connect(noiseFilter.frequency);
-    windLfo.start();
+    // Note frequencies
+    const N = {
+        C3: 130.81, D3: 146.83, Eb3: 155.56, E3: 164.81, F3: 174.61, G3: 196.00, Ab3: 207.65, A3: 220.00, Bb3: 233.08, B3: 246.94,
+        C4: 261.63, D4: 293.66, Eb4: 311.13, E4: 329.63, F4: 349.23, G4: 392.00, Ab4: 415.30, A4: 440.00, Bb4: 466.16, B4: 493.88,
+        C5: 523.25, D5: 587.33, Eb5: 622.25, E5: 659.26, F5: 698.46, G5: 783.99, Ab5: 830.61
+    };
 
-    // Random creepy high tones
-    function playCreepyTone() {
+    function playSequence() {
         if (!isPlaying) return;
-        const osc = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        const freq = 800 + Math.random() * 2000;
-        osc.type = 'sine';
-        osc.frequency.value = freq;
-        g.gain.value = 0;
-        g.gain.setValueAtTime(0, audioCtx.currentTime);
-        g.gain.linearRampToValueAtTime(0.02, audioCtx.currentTime + 2);
-        g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 5);
-        osc.connect(g);
-        g.connect(masterGain);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 5);
-        setTimeout(playCreepyTone, 5000 + Math.random() * 15000);
-    }
-    setTimeout(playCreepyTone, 3000);
+        const t = audioCtx.currentTime + 0.1;
+        const bpm = 70;
+        const beat = 60 / bpm;
+        const h = beat / 2; // half beat
+        const q = beat;     // quarter
+        const dq = beat * 1.5; // dotted quarter
+        const w = beat * 4; // whole
 
-    // Occasional deep rumble
-    function playRumble() {
-        if (!isPlaying) return;
-        const osc = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = 30 + Math.random() * 20;
-        g.gain.value = 0;
-        g.gain.setValueAtTime(0, audioCtx.currentTime);
-        g.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 3);
-        g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 8);
-        osc.connect(g);
-        g.connect(masterGain);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 8);
-        setTimeout(playRumble, 10000 + Math.random() * 20000);
+        // "Low of Solipsism" — L's theme melody (C minor)
+        // Haunting piano melody
+        const melody = [
+            // Bar 1-2: Opening motif
+            [N.G4, 0, q, 0.35],
+            [N.Eb5, q, q, 0.4],
+            [N.D5, q*2, h, 0.35],
+            [N.C5, q*2.5, h, 0.3],
+            [N.D5, q*3, q*2, 0.35],
+            
+            // Bar 3-4
+            [N.G4, q*5, q, 0.35],
+            [N.Eb5, q*6, q, 0.4],
+            [N.D5, q*7, h, 0.35],
+            [N.Eb5, q*7.5, h, 0.3],
+            [N.C5, q*8, q*2, 0.35],
+            
+            // Bar 5-6: Rising tension
+            [N.Ab4, q*10, q, 0.3],
+            [N.Bb4, q*11, q, 0.35],
+            [N.C5, q*12, q, 0.4],
+            [N.Eb5, q*13, dq, 0.42],
+            [N.D5, q*14.5, q*2, 0.38],
+            
+            // Bar 7-8: Resolution
+            [N.C5, q*16.5, q, 0.35],
+            [N.Bb4, q*17.5, q, 0.3],
+            [N.Ab4, q*18.5, q, 0.28],
+            [N.G4, q*19.5, q*3, 0.35],
+            
+            // Bar 9-10: Second phrase
+            [N.G4, q*22.5, q, 0.33],
+            [N.C5, q*23.5, q, 0.38],
+            [N.D5, q*24.5, h, 0.35],
+            [N.Eb5, q*25, q, 0.4],
+            [N.F5, q*26, dq, 0.42],
+            [N.Eb5, q*27.5, q*2, 0.38],
+            
+            // Bar 11-12: Descent
+            [N.D5, q*29.5, q, 0.35],
+            [N.C5, q*30.5, q, 0.33],
+            [N.Bb4, q*31.5, q, 0.3],
+            [N.G4, q*32.5, q*3, 0.35],
+            
+            // Bar 13-14: Climax
+            [N.Eb5, q*35.5, q, 0.42],
+            [N.F5, q*36.5, q, 0.44],
+            [N.G5, q*37.5, dq, 0.48],
+            [N.F5, q*39, q, 0.4],
+            [N.Eb5, q*40, q*2, 0.38],
+            
+            // Bar 15-16: Final descent
+            [N.D5, q*42, q, 0.35],
+            [N.C5, q*43, q, 0.33],
+            [N.Bb4, q*44, dq, 0.3],
+            [N.Ab4, q*45.5, q, 0.28],
+            [N.G4, q*46.5, q*4, 0.35],
+        ];
+
+        // Bass notes (left hand) — sparse, dark
+        const bass = [
+            [N.C3, 0, w, 0.25],
+            [N.G3, q*4, w, 0.22],
+            [N.Ab3, q*8, w, 0.22],
+            [N.Eb3, q*10, w, 0.2],
+            [N.G3, q*14, w, 0.22],
+            [N.C3, q*18, w, 0.25],
+            [N.C3, q*22, w, 0.25],
+            [N.F3, q*26, w, 0.22],
+            [N.G3, q*30, w, 0.22],
+            [N.C3, q*34, w, 0.25],
+            [N.Ab3, q*36, w, 0.22],
+            [N.Eb3, q*38, w, 0.2],
+            [N.G3, q*42, w, 0.22],
+            [N.C3, q*46, w, 0.25],
+        ];
+
+        melody.forEach(([freq, time, dur, vel]) => {
+            playPianoNote(freq, t + time, dur, vel);
+        });
+
+        bass.forEach(([freq, time, dur, vel]) => {
+            playPianoNote(freq, t + time, dur * 1.5, vel);
+        });
+
+        // Loop the sequence
+        const totalDuration = q * 50;
+        loopTimeout = setTimeout(() => playSequence(), totalDuration * 1000);
     }
-    setTimeout(playRumble, 5000);
+
+    playSequence();
 }
 
 function toggleMusic() {
     const btn = document.getElementById('music-toggle');
     if (!isPlaying) {
+        isPlaying = true;
         if (!audioCtx) {
-            createSpookyAmbience();
+            createDeathNoteTheme();
         } else {
             audioCtx.resume();
+            // Restart the loop
+            createDeathNoteTheme();
         }
-        isPlaying = true;
         btn.textContent = '🔊';
         btn.style.borderColor = '#c41e3a';
         btn.style.boxShadow = '0 0 20px rgba(196, 30, 58, 0.3)';
     } else {
-        if (audioCtx) audioCtx.suspend();
         isPlaying = false;
+        if (loopTimeout) clearTimeout(loopTimeout);
+        if (audioCtx) audioCtx.suspend();
         btn.textContent = '🔇';
         btn.style.borderColor = '#222';
         btn.style.boxShadow = 'none';
