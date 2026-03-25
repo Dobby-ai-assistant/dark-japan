@@ -810,5 +810,178 @@
     <p style="margin-top: 0.5rem;">Du lịch có trách nhiệm. Tôn trọng người sống và người chết.</p>
 </footer>
 
+<!-- SPOOKY MUSIC -->
+<div id="music-toggle" style="
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 999;
+    width: 50px;
+    height: 50px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.5rem;
+    transition: border-color 0.3s, transform 0.2s;
+    user-select: none;
+" onclick="toggleMusic()">🔇</div>
+
+<script>
+// Web Audio API — generates spooky ambient sounds, no external files needed
+let audioCtx, masterGain, isPlaying = false;
+
+function createSpookyAmbience() {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0.3;
+    masterGain.connect(audioCtx.destination);
+
+    // Deep drone
+    const drone = audioCtx.createOscillator();
+    const droneGain = audioCtx.createGain();
+    drone.type = 'sine';
+    drone.frequency.value = 55; // Low A
+    droneGain.gain.value = 0.15;
+    drone.connect(droneGain);
+    droneGain.connect(masterGain);
+    drone.start();
+
+    // Second drone (dissonant)
+    const drone2 = audioCtx.createOscillator();
+    const drone2Gain = audioCtx.createGain();
+    drone2.type = 'sine';
+    drone2.frequency.value = 58; // Slightly detuned — creates eerie beating
+    drone2Gain.gain.value = 0.12;
+    drone2.connect(drone2Gain);
+    drone2Gain.connect(masterGain);
+    drone2.start();
+
+    // Dark pad
+    const pad = audioCtx.createOscillator();
+    const padGain = audioCtx.createGain();
+    const padFilter = audioCtx.createBiquadFilter();
+    pad.type = 'sawtooth';
+    pad.frequency.value = 110;
+    padFilter.type = 'lowpass';
+    padFilter.frequency.value = 200;
+    padFilter.Q.value = 5;
+    padGain.gain.value = 0.05;
+    pad.connect(padFilter);
+    padFilter.connect(padGain);
+    padGain.connect(masterGain);
+    pad.start();
+
+    // Slow LFO on pad filter for movement
+    const lfo = audioCtx.createOscillator();
+    const lfoGain = audioCtx.createGain();
+    lfo.type = 'sine';
+    lfo.frequency.value = 0.1; // Very slow
+    lfoGain.gain.value = 100;
+    lfo.connect(lfoGain);
+    lfoGain.connect(padFilter.frequency);
+    lfo.start();
+
+    // Wind-like noise
+    const bufferSize = audioCtx.sampleRate * 2;
+    const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * 0.5;
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = noiseBuffer;
+    noise.loop = true;
+    const noiseFilter = audioCtx.createBiquadFilter();
+    noiseFilter.type = 'bandpass';
+    noiseFilter.frequency.value = 300;
+    noiseFilter.Q.value = 0.5;
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.value = 0.08;
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(masterGain);
+    noise.start();
+
+    // Slow wind sweep
+    const windLfo = audioCtx.createOscillator();
+    const windLfoGain = audioCtx.createGain();
+    windLfo.type = 'sine';
+    windLfo.frequency.value = 0.05;
+    windLfoGain.gain.value = 200;
+    windLfo.connect(windLfoGain);
+    windLfoGain.connect(noiseFilter.frequency);
+    windLfo.start();
+
+    // Random creepy high tones
+    function playCreepyTone() {
+        if (!isPlaying) return;
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        const freq = 800 + Math.random() * 2000;
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        g.gain.value = 0;
+        g.gain.setValueAtTime(0, audioCtx.currentTime);
+        g.gain.linearRampToValueAtTime(0.02, audioCtx.currentTime + 2);
+        g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 5);
+        osc.connect(g);
+        g.connect(masterGain);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 5);
+        setTimeout(playCreepyTone, 5000 + Math.random() * 15000);
+    }
+    setTimeout(playCreepyTone, 3000);
+
+    // Occasional deep rumble
+    function playRumble() {
+        if (!isPlaying) return;
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 30 + Math.random() * 20;
+        g.gain.value = 0;
+        g.gain.setValueAtTime(0, audioCtx.currentTime);
+        g.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 3);
+        g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 8);
+        osc.connect(g);
+        g.connect(masterGain);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 8);
+        setTimeout(playRumble, 10000 + Math.random() * 20000);
+    }
+    setTimeout(playRumble, 5000);
+}
+
+function toggleMusic() {
+    const btn = document.getElementById('music-toggle');
+    if (!isPlaying) {
+        if (!audioCtx) {
+            createSpookyAmbience();
+        } else {
+            audioCtx.resume();
+        }
+        isPlaying = true;
+        btn.textContent = '🔊';
+        btn.style.borderColor = '#c41e3a';
+        btn.style.boxShadow = '0 0 20px rgba(196, 30, 58, 0.3)';
+    } else {
+        if (audioCtx) audioCtx.suspend();
+        isPlaying = false;
+        btn.textContent = '🔇';
+        btn.style.borderColor = '#222';
+        btn.style.boxShadow = 'none';
+    }
+}
+
+// Pulse animation on the button to draw attention
+const btn = document.getElementById('music-toggle');
+btn.addEventListener('mouseenter', () => { btn.style.transform = 'scale(1.1)'; });
+btn.addEventListener('mouseleave', () => { btn.style.transform = 'scale(1)'; });
+</script>
+
 </body>
 </html>
